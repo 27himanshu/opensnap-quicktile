@@ -8,7 +8,24 @@
 #include <string.h>
 #include "xdo_functions.h"
 #include "opensnap.h"
-#include "help.h"
+
+void printHelp()
+{
+	printf("Usage: opensnap-quicktile <OPTION>\n");
+	printf("\n");
+	printf("Options:\n");
+	printf("\n");
+	printf("  -d, --daemon               run opensnap-quicktile as daemon\n");
+	printf("  -s, --screens              specify number of (physical) screens. Default: autodetect.\n");
+	printf("  -o, --offset <PIXEL>       offset in pixel\n");
+	printf("  -v, --verbose              be verbose\n");
+	printf("  -V, --version              print opensnap-quicktile version number\n");
+	printf("  -h, --help                 print this help\n");
+	printf("\n");
+	printf("Example:\n");
+	printf("\n");
+	printf("opensnap-quicktile -d\n\n");
+}
 
 int main(int argc, char **argv)
 {
@@ -18,10 +35,6 @@ int main(int argc, char **argv)
 
 	screens scrinfo;
 	getScreens(&scrinfo);
-
-	Window parentWin;
-
-	int action=0;
 	int verbose=0;
 	int isdrag=0;
 	int isinitialclick=1;
@@ -29,13 +42,8 @@ int main(int argc, char **argv)
 	mousestate mousepos;
 	mousestate relativeMousepos;
 	XEvent event;
-	Window activeWindow;
-	char launch[MY_MAXPATH];
-	char configbase[MY_MAXPATH];
-	strcpy(configbase,"~/.config/opensnap/");
 
 	struct option longopts[] = {
-		{"config",  1, NULL, 'c'},
 		{"offset",  1, NULL, 'o'},
 		{"daemon",  0, NULL, 'd'},
 		{"info",    0, NULL, 'i'},
@@ -50,11 +58,6 @@ int main(int argc, char **argv)
 	{
 		switch(opt)
 		{
-		case 'c':
-			strncpy(configbase,optarg,MY_MAXPATH);
-			configbase[MY_MAXPATH-1]='\0';
-			break;
-		
 		case 'd':
 			if(daemon(0,0) == -1)
 			{
@@ -105,30 +108,33 @@ int main(int argc, char **argv)
 		
 		if((LEFTCLICK & mousepos.state)==LEFTCLICK)
 		{
-
-			
-			
-			if(relativeMousepos.x<=offset)
+			if (isdrag)
 			{
-				if(relativeMousepos.y<=offset) { action=TOP_LEFT; }
-			
-				else if(relativeMousepos.y>=scrinfo.screens[scrnn].height-offset-1) { action=BOTTOM_LEFT; }
-				
-				else { action=HIT_LEFT;}
-			}
-			
-			else if(relativeMousepos.x>=scrinfo.screens[scrnn].width-offset-1)
-			{
-				if(relativeMousepos.y<=offset) { action=TOP_RIGHT; }
-			
-				else if(relativeMousepos.y>=scrinfo.screens[scrnn].height-offset-1) { action=BOTTOM_RIGHT; }
-				
-				else { action=HIT_RIGHT;}
-			}
-			
-			else if(relativeMousepos.y>=scrinfo.screens[scrnn].height-offset-1) { action=HIT_BOTTOM; }
+				if(relativeMousepos.x<=offset)
+				{
 
-			else if(relativeMousepos.y<=offset) { action=HIT_TOP; }
+					if(relativeMousepos.y<=offset) { system("quicktile top-left"); }
+				
+					else if(relativeMousepos.y>=scrinfo.screens[scrnn].height-offset-1) { system("quicktile bottom-left"); }
+					
+					else { system("quicktile left"); }
+				}
+				
+				else if(relativeMousepos.x>=scrinfo.screens[scrnn].width-offset-1)
+				{
+					if(relativeMousepos.y<=offset) { system("quicktile top-right"); }
+				
+					else if(relativeMousepos.y>=scrinfo.screens[scrnn].height-offset-1) { system("quicktile bottom-right"); }
+					
+					else { system("quicktile right"); }
+				}
+				
+				else if(relativeMousepos.y>=scrinfo.screens[scrnn].height-offset-1) { system("quicktile bottom"); }
+
+				else if(relativeMousepos.y<=offset) { system("quicktile top"); }
+				
+				usleep(10000);
+			}
 			
 			else
 			{
@@ -139,32 +145,13 @@ int main(int argc, char **argv)
 						isdrag=1;
 					}
 				}
-				action=0;
 			}
 			isinitialclick=false;
 		}
 		
 		if(verbose)
 		{
-			printf("action is: %d, isdrag is: %d\n",action,isdrag);
-		}
-		
-		if(((16 & mousepos.state) == mousepos.state || (24 & mousepos.state) == mousepos.state) && isdrag)
-		{
-			if(action)
-			{
-				getFocusedWindow(dsp,&activeWindow);
-				findParentWindow(dsp,&activeWindow,&parentWin);
-				
-				if(verbose)
-				{
-					printf("Running script: %s",SCRIPT_NAMES[action]);
-				}
-				
-				sprintf(launch,"/bin/sh %s/%s %lu %i %i %i %i",configbase,SCRIPT_NAMES[action],parentWin,scrinfo.screens[scrnn].width,scrinfo.screens[scrnn].height,scrinfo.screens[scrnn].x, scrinfo.screens[scrnn].y);
-				system(launch);
-			}
-			action=0;
+			printf("isdrag is: %d\n",isdrag);
 		}
 		
 		if((LEFTCLICK & mousepos.state) != LEFTCLICK)
@@ -172,8 +159,7 @@ int main(int argc, char **argv)
 			isdrag=0;
 			isinitialclick=1;
 		}
-
-		usleep(10000);
+		usleep(500000);
 	}
 	
 	XCloseDisplay(dsp);
