@@ -133,7 +133,7 @@ int main(int argc, char **argv)
 
 				else if(relativeMousepos.y<=offset) { system("quicktile top"); }
 				
-				usleep(10000);
+				usleep(100000);
 			}
 			
 			else
@@ -159,7 +159,7 @@ int main(int argc, char **argv)
 			isdrag=0;
 			isinitialclick=1;
 		}
-		usleep(400000);
+		usleep(100000);
 	}
 	
 	XCloseDisplay(dsp);
