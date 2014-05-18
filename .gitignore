@@ -1,1 +1,4 @@
 bin/*
+.directory
+src/.directory
+/sameple_configs/.directory
