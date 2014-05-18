@@ -159,7 +159,7 @@ int main(int argc, char **argv)
 			isdrag=0;
 			isinitialclick=1;
 		}
-		usleep(500000);
+		usleep(400000);
 	}
 	
 	XCloseDisplay(dsp);
