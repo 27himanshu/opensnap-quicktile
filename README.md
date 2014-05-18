@@ -1,41 +1,28 @@
-OPENSNAP
+NOTE: This fork is a WIP, so some of the old stuff is still here.
+
+opensnap-quicktile
 ==========
 
 What's that?
 ------------
-Opensnap brings the Aero Snap feature to Openbox.
+Opensnap brings the Aero Snap feature to Openbox using quicktile.
 
-Eternal Code freeze (kinda probably)
-------------
-The state of X is REALLY, REALLY horrible. I didn't know what I was getting in to when I started the POC of opensnap. So I'm declaring an eternal code freeze. Meaning I will probably not add features or fix bugs that can be workarounded.
-
-Known bugs you just have to work around:
-
-* No "unsnapping" feature (see end of this file for workaround)
-* opensnap doesn't detect screen layout changes (just restart opensnap)
-
-Sorry, opensnap works fine enough for me in it's current state and I'm really not too keen on messing more with X API's.
-If you encounter a bug, you can either report it here, maybe I'll fix it, no guarantees though.
-Or fork opensnap and fix it yourself. (And optionally send me a pull request)
-
-But hey, opensnap is still in use by quite a few people, including me, and it works. It's not perfect but good enough for daily use. So you might still want to give it a shot.
 
 Does this work with other window managers?
 ------------------------------------------
-The goal was to make it work with every EWMH compliant window manager.
+Probably.
 
 
 Dependencies?
 -------------
-You'll need wmctrl.
+Just quicktile and gtk3 as far as I know. I only use Arch Linux and have not tested this on other distros yet.
 
-On most debian systems you should be able to install it by:
 
-    sudo apt-get install wmctrl
+Future:
+------
+I plan to refine the code to make it only for quicktile. I don't plan to dedicate myself to development of this.
 
-If you want to build it make sure you have these as well:
-
-    sudo apt-get install build-essential libx11-dev libgtk-3-dev
+Old stuff:
 
 Installing
 ----------
