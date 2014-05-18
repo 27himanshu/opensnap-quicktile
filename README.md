@@ -22,15 +22,15 @@ I plan to refine the code along the way. There is most likely some useless code 
 
 Installing
 ----------
-If you want to install opensnap from source first make sure you have git installed. (Or fetch a zip file: https://github.com/lawl/opensnap/archive/master.zip)
+If you want to install opensnap-quicktile. from source first make sure you have git installed. (Or fetch a zip file: https://github.com/lawl/opensnap/archive/master.zip)
 
 Fetch via git:
 
-    git clone https://github.com/Pr0Wolf29/opensnap.git
+    git clone https://github.com/Pr0Wolf29/opensnap-quicktile.git
 
 Fetch via zip:
 
-    wget https://github.com/Pr0Wolf29/opensnap/archive/master.zip
+    wget https://github.com/Pr0Wolf29/opensnap-quicktile/archive/master.zip
     unzip master.zip
 
 Make sure you have all prerequisits:
