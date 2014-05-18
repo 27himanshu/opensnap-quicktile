@@ -9,7 +9,6 @@
 #include "xdo_functions.h"
 #include "opensnap.h"
 #include "help.h"
-#include "version.h"
 
 int main(int argc, char **argv)
 {
@@ -74,7 +73,7 @@ int main(int argc, char **argv)
 			break;
 			
 		case 'V':
-			printf("edgy 1.0");
+			printf("opensnap-quicktile 1.0");
 			exit(EXIT_SUCCESS);
 			
 		case 'o':
