@@ -109,7 +109,7 @@ int main(int argc, char **argv)
 		if((LEFTCLICK & mousepos.state)==LEFTCLICK)
 		{
 			if (isdrag)
-			{
+			{			
 				if(relativeMousepos.x<=offset)
 				{
 
@@ -129,11 +129,10 @@ int main(int argc, char **argv)
 					else { system("quicktile right"); }
 				}
 				
-				else if(relativeMousepos.y>=scrinfo.screens[scrnn].height-offset-1) { system("quicktile bottom"); }
+				else if(relativeMousepos.y>=scrinfo.screens[scrnn].height-offset-1) { system("quicktile bottom && sleep 3"); } //Prevent minimize.
 
 				else if(relativeMousepos.y<=offset) { system("quicktile top"); }
 				
-				usleep(100000);
 			}
 			
 			else
@@ -159,7 +158,7 @@ int main(int argc, char **argv)
 			isdrag=0;
 			isinitialclick=1;
 		}
-		usleep(100000);
+		usleep(50000);
 	}
 	
 	XCloseDisplay(dsp);
