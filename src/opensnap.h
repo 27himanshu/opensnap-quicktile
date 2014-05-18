@@ -3,6 +3,10 @@
 #define HIT_LEFT 2
 #define HIT_RIGHT 3
 #define HIT_BOTTOM 4
+#define TOP_LEFT 5
+#define TOP_RIGHT 6
+#define BOTTOM_LEFT 7
+#define BOTTOM_RIGHT 8
 #define MY_MAXPATH 2048
 
 
@@ -30,7 +34,11 @@ const char *SCRIPT_NAMES[] = {
     "hit_top",
     "hit_left",
     "hit_right",
-    "hit_bottom"
+    "hit_bottom",
+    "top_left",
+    "top_right",
+    "bottom_left",
+    "bottom_right"
 };
 
 void getMousePosition(Display *dsp, XEvent *event, mousestate *cords);
