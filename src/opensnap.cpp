@@ -82,7 +82,7 @@ int main(int argc, char **argv)
 			break;
 			
 		case 'V':
-			printf("opensnap-quicktile 1.0");
+			printf("opensnap-quicktile 1.1");
 			exit(EXIT_SUCCESS);
 			
 		case 'o':
