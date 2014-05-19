@@ -8,6 +8,8 @@
 #include <string.h>
 #include "xdo_functions.h"
 #include "opensnap.h"
+#include <iostream> //C strings are annoying.
+
 
 void printHelp()
 {
@@ -27,6 +29,7 @@ void printHelp()
 	printf("opensnap-quicktile -d\n\n");
 }
 
+
 int main(int argc, char **argv)
 {
 	gtk_init(&argc, &argv);                     
@@ -42,6 +45,8 @@ int main(int argc, char **argv)
 	mousestate mousepos;
 	mousestate relativeMousepos;
 	XEvent event;
+	
+	std::string args = "0";
 
 	struct option longopts[] = {
 		{"offset",  1, NULL, 'o'},
@@ -53,6 +58,7 @@ int main(int argc, char **argv)
 		{0, 0, 0, 0}};
 
 	int opt=0;
+	
 	
 	while((opt = getopt_long(argc,argv,"c:o:divVh",longopts,NULL)) != -1)
 	{
@@ -113,26 +119,25 @@ int main(int argc, char **argv)
 				if(relativeMousepos.x<=offset)
 				{
 
-					if(relativeMousepos.y<=offset) { system("quicktile top-left"); }
+					if(relativeMousepos.y<=offset) { args = "top-left"; }
 				
-					else if(relativeMousepos.y>=scrinfo.screens[scrnn].height-offset-1) { system("quicktile bottom-left"); }
+					else if(relativeMousepos.y>=scrinfo.screens[scrnn].height-offset-1) { args = "bottom-left"; }
 					
-					else { system("quicktile left"); }
+					else { args = "left"; }
 				}
 				
 				else if(relativeMousepos.x>=scrinfo.screens[scrnn].width-offset-1)
 				{
-					if(relativeMousepos.y<=offset) { system("quicktile top-right"); }
+					if(relativeMousepos.y<=offset) { args = "top-right"; }
 				
-					else if(relativeMousepos.y>=scrinfo.screens[scrnn].height-offset-1) { system("quicktile bottom-right"); }
+					else if(relativeMousepos.y>=scrinfo.screens[scrnn].height-offset-1) { args = "bottom-right"; }
 					
-					else { system("quicktile right"); }
+					else { args = "right"; }
 				}
 				
-				else if(relativeMousepos.y>=scrinfo.screens[scrnn].height-offset-1) { system("quicktile bottom && sleep 3"); } //Prevent minimize.
+				else if(relativeMousepos.y>=scrinfo.screens[scrnn].height-offset-1) { args = "bottom"; } //Prevent minimize.
 
-				else if(relativeMousepos.y<=offset) { system("quicktile top"); }
-				
+				else if(relativeMousepos.y<=offset) { args = "top"; }
 			}
 			
 			else
@@ -153,12 +158,23 @@ int main(int argc, char **argv)
 			printf("isdrag is: %d\n",isdrag);
 		}
 		
+		if(((16 & mousepos.state) == mousepos.state || (24 & mousepos.state) == mousepos.state) && isdrag)
+		{
+			if(args != "0")
+			{
+				std::string tempAction = "quicktile ";
+				tempAction += args;
+				system(tempAction.c_str());
+				args = "0";
+			}
+		}
+		
 		if((LEFTCLICK & mousepos.state) != LEFTCLICK)
 		{
 			isdrag=0;
 			isinitialclick=1;
 		}
-		usleep(50000);
+		usleep(10000);
 	}
 	
 	XCloseDisplay(dsp);
