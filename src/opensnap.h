@@ -1,6 +1,3 @@
-#define LEFTCLICK 256
-#define MY_MAXPATH 2048
-
 typedef struct {
     int x;
     int y;
@@ -26,4 +23,3 @@ void getNetFrameExtents(Display *dpy, Window *w, int *top);
 void getWindowRect(Display *dsp, Window *win, int *x, int *y, unsigned int *w, unsigned int *h);
 void findParentWindow(Display *dsp, Window *w, Window *parent);
 int isTitlebarHit(Display *dsp, mousestate *mousepos);
-void dumpInfo(screens *scrinfo);

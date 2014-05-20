@@ -5,30 +5,18 @@
 #include <getopt.h>
 #include <time.h>
 #include <cstdlib>
-#include <string.h>
 #include "xdo_functions.h"
 #include "opensnap.h"
-#include <iostream> //C strings are annoying.
+#include <iostream>
 
+#define LEFTCLICK 256
 
-void printHelp()
+void string2exec(std::string args)
 {
-	printf("Usage: opensnap-quicktile <OPTION>\n");
-	printf("\n");
-	printf("Options:\n");
-	printf("\n");
-	printf("  -d, --daemon               run opensnap-quicktile as daemon\n");
-	printf("  -s, --screens              specify number of (physical) screens. Default: autodetect.\n");
-	printf("  -o, --offset <PIXEL>       offset in pixel\n");
-	printf("  -v, --verbose              be verbose\n");
-	printf("  -V, --version              print opensnap-quicktile version number\n");
-	printf("  -h, --help                 print this help\n");
-	printf("\n");
-	printf("Example:\n");
-	printf("\n");
-	printf("opensnap-quicktile -d\n\n");
+	std::string tempAction = "quicktile ";
+	tempAction += args;
+	system(tempAction.c_str());
 }
-
 
 int main(int argc, char **argv)
 {
@@ -38,28 +26,23 @@ int main(int argc, char **argv)
 
 	screens scrinfo;
 	getScreens(&scrinfo);
-	int verbose=0;
 	int isdrag=0;
 	int isinitialclick=1;
 	int offset=10;
 	mousestate mousepos;
 	mousestate relativeMousepos;
 	XEvent event;
-	
-	std::string args = "0";
+	int Continue = 0;
 
 	struct option longopts[] = {
 		{"offset",  1, NULL, 'o'},
 		{"daemon",  0, NULL, 'd'},
-		{"info",    0, NULL, 'i'},
-		{"verbose", 0, NULL, 'v'},
 		{"help",    0, NULL, 'h'},
 		{"version", 0, NULL, 'V'},
 		{0, 0, 0, 0}};
 
 	int opt=0;
-	
-	
+		
 	while((opt = getopt_long(argc,argv,"c:o:divVh",longopts,NULL)) != -1)
 	{
 		switch(opt)
@@ -72,18 +55,10 @@ int main(int argc, char **argv)
 			}
 			break;
 			
-		case 'i':
-			dumpInfo(&scrinfo);
-			exit(EXIT_SUCCESS);
-			break;
-
-			case 'v':
-			verbose=1;
-			break;
-			
 		case 'V':
 			printf("opensnap-quicktile 1.1");
 			exit(EXIT_SUCCESS);
+			break;
 			
 		case 'o':
 			offset=atoi(optarg);
@@ -91,7 +66,15 @@ int main(int argc, char **argv)
 			
 		case 'h':
 		case '?':
-			printHelp();
+			printf("Usage: opensnap-quicktile <OPTION>\n");
+			printf("\n");
+			printf("Options:\n");
+			printf("\n");
+			printf("  -d, --daemon               Run opensnap-quicktile as daemon.\n");
+			printf("  -o, --offset <PIXEL>       Offset in pixel.\n");
+			printf("  -V, --version              Print opensnap-quicktile version number.\n");
+			printf("  -h, --help                 Print this help.\n\n");
+
 			exit(EXIT_FAILURE);
 			break;
 		}
@@ -104,42 +87,14 @@ int main(int argc, char **argv)
 		int scrnn;
 		scrnn = gdk_screen_get_monitor_at_point(gdk_screen_get_default(), mousepos.x, mousepos.y);
 
-		//make mouse coordinates relative to screen
 		relativeMousepos.x=mousepos.x-scrinfo.screens[scrnn].x;
 		relativeMousepos.y=mousepos.y-scrinfo.screens[scrnn].y;
-		if(verbose)
-		{
-			printf("Mouse Coordinates: %d %d %d\n", mousepos.x, mousepos.y, mousepos.state );
-		}
 		
+		/* Check if the window has been dragged to a screen edge. */
 		if((LEFTCLICK & mousepos.state)==LEFTCLICK)
 		{
-			if (isdrag)
-			{			
-				if(relativeMousepos.x<=offset)
-				{
+			if(relativeMousepos.x<=offset || relativeMousepos.x>=scrinfo.screens[scrnn].width-offset-1 || relativeMousepos.y>=scrinfo.screens[scrnn].height-offset-1 || relativeMousepos.y<=offset) { Continue = 1; }
 
-					if(relativeMousepos.y<=offset) { args = "top-left"; }
-				
-					else if(relativeMousepos.y>=scrinfo.screens[scrnn].height-offset-1) { args = "bottom-left"; }
-					
-					else { args = "left"; }
-				}
-				
-				else if(relativeMousepos.x>=scrinfo.screens[scrnn].width-offset-1)
-				{
-					if(relativeMousepos.y<=offset) { args = "top-right"; }
-				
-					else if(relativeMousepos.y>=scrinfo.screens[scrnn].height-offset-1) { args = "bottom-right"; }
-					
-					else { args = "right"; }
-				}
-				
-				else if(relativeMousepos.y>=scrinfo.screens[scrnn].height-offset-1) { args = "bottom"; } //Prevent minimize.
-
-				else if(relativeMousepos.y<=offset) { args = "top"; }
-			}
-			
 			else
 			{
 				if(!isdrag && isinitialclick)
@@ -149,23 +104,40 @@ int main(int argc, char **argv)
 						isdrag=1;
 					}
 				}
+				Continue = 0;
 			}
 			isinitialclick=false;
 		}
-		
-		if(verbose)
-		{
-			printf("isdrag is: %d\n",isdrag);
-		}
-		
+
 		if(((16 & mousepos.state) == mousepos.state || (24 & mousepos.state) == mousepos.state) && isdrag)
 		{
-			if(args != "0")
+			if(Continue == 1)
 			{
-				std::string tempAction = "quicktile ";
-				tempAction += args;
-				system(tempAction.c_str());
-				args = "0";
+			
+				/* Check to see if window is still over there. This is to prevent the window from snapping after the mouse has been moved away. */
+				if(relativeMousepos.x<=offset)
+				{
+					if(relativeMousepos.y<=offset) { string2exec("top-left"); }
+				
+					else if(relativeMousepos.y>=scrinfo.screens[scrnn].height-offset-1) { string2exec("bottom-left"); }
+					
+					else { string2exec("left"); }
+				}
+				
+				else if(relativeMousepos.x>=scrinfo.screens[scrnn].width-offset-1)
+				{
+					if(relativeMousepos.y<=offset) { string2exec("top-right"); }
+					
+					else if(relativeMousepos.y>=scrinfo.screens[scrnn].height-offset-1) { string2exec("bottom-right"); }
+					
+					else { string2exec("right"); }
+				}
+				
+				else if(relativeMousepos.y>=scrinfo.screens[scrnn].height-offset-1) { string2exec("bottom"); }
+
+				else if(relativeMousepos.y<=offset) { string2exec("top"); }
+
+				Continue = 0;
 			}
 		}
 		
@@ -244,11 +216,7 @@ void getNetFrameExtents(Display *dpy, Window *w, int *top)
 
 	*top = 0;
 
-	result = XGetWindowProperty(
-		dpy, *w, XInternAtom(dpy, "_NET_FRAME_EXTENTS", False),
-		0, 4, False, AnyPropertyType,
-		&actual_type, &actual_format,
-		&nitems, &bytes_after, &data);
+	result = XGetWindowProperty(dpy, *w, XInternAtom(dpy, "_NET_FRAME_EXTENTS", False), 0, 4, False, AnyPropertyType, &actual_type, &actual_format,	&nitems, &bytes_after, &data);
 
 	if (result == Success)
 	{
@@ -258,16 +226,6 @@ void getNetFrameExtents(Display *dpy, Window *w, int *top)
 			*top = (int) *(extents + 2);
 		}
 		XFree(data);
-	}
-}
-
-void dumpInfo(screens *scrinfo)
-{
-	for(int i=0; i<scrinfo->amount; i++)
-	{
-		printf("Screen %i\n", i);
-		printf("\t Width:\t\t%i\n\t Height:\t%i\n\t X:\t\t%i\n\t Y:\t\t%i\n\n",
-		scrinfo->screens[i].width, scrinfo->screens[i].height, scrinfo->screens[i].x, scrinfo->screens[i].y);
 	}
 }
 
