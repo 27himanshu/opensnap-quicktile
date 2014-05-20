@@ -24,6 +24,9 @@ Installing
 ----------
 If you want to install opensnap-quicktile. from source first make sure you have git installed. (Or fetch a zip file: https://github.com/lawl/opensnap/archive/master.zip)
 
+Install from AUR:
+    yaourt -S opensnap-quicktile-git
+
 Fetch via git:
 
     git clone https://github.com/Pr0Wolf29/opensnap-quicktile.git

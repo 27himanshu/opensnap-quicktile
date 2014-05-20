@@ -56,7 +56,7 @@ int main(int argc, char **argv)
 			break;
 			
 		case 'V':
-			printf("opensnap-quicktile 1.1");
+			printf("opensnap-quicktile 1.2");
 			exit(EXIT_SUCCESS);
 			break;
 			
