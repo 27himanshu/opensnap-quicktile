@@ -32,18 +32,21 @@ int main(int argc, char **argv)
 	mousestate mousepos;
 	mousestate relativeMousepos;
 	XEvent event;
+	int mode = 0;
 	int Continue = 0;
 
 	struct option longopts[] = {
-		{"offset",  1, NULL, 'o'},
-		{"daemon",  0, NULL, 'd'},
-		{"help",    0, NULL, 'h'},
-		{"version", 0, NULL, 'V'},
+		{"offset",    1, NULL, 'o'},
+		{"daemon",    0, NULL, 'd'},
+		{"help",      0, NULL, 'h'},
+		{"version",   0, NULL, 'V'},
+		{"titledrag", 0, NULL, 't'},
+		{"altdrag",   0, NULL, 'a'},
 		{0, 0, 0, 0}};
 
 	int opt=0;
 		
-	while((opt = getopt_long(argc,argv,"c:o:divVh",longopts,NULL)) != -1)
+	while((opt = getopt_long(argc,argv,"o:dvhta",longopts,NULL)) != -1)
 	{
 		switch(opt)
 		{
@@ -64,16 +67,24 @@ int main(int argc, char **argv)
 			offset=atoi(optarg);
 			break;
 			
+		case 't':
+			mode = 1;
+			break;
+			
+		case 'a':
+			mode = 2;
+			break; 
+			
 		case 'h':
 		case '?':
-			printf("Usage: opensnap-quicktile <OPTION>\n");
-			printf("\n");
+			printf("Usage: opensnap-quicktile <OPTION>\n\n");
 			printf("Options:\n");
-			printf("\n");
-			printf("  -d, --daemon               Run opensnap-quicktile as daemon.\n");
-			printf("  -o, --offset <PIXEL>       Offset in pixel.\n");
-			printf("  -V, --version              Print opensnap-quicktile version number.\n");
-			printf("  -h, --help                 Print this help.\n\n");
+			printf("  -d, --daemon            Run opensnap-quicktile as daemon.\n");
+			printf("  -o, --offset <PIXEL>    Offset in pixel.\n");
+			printf("  -v, --version           Print opensnap-quicktile version number.\n");
+			printf("  -h, --help              Print this help.\n");
+			printf("  -t, --titledrag         Only drags by titlebar.\n");
+			printf("  -a, --altdrag           Only drags by Alt+Dragging.\n\n");
 
 			exit(EXIT_FAILURE);
 			break;
@@ -99,9 +110,21 @@ int main(int argc, char **argv)
 			{
 				if(!isdrag && isinitialclick)
 				{
-					if(isTitlebarHit(dsp, &mousepos) || mousepos.state & 8)
+					if(mode == 0 || mode == 2)
 					{
-						isdrag=1;
+						if(mousepos.state & 8)
+						{
+							isdrag=1;
+						}
+					}
+					
+					if(mode == 0 || mode == 1)
+					{
+						if(isTitlebarHit(dsp, &mousepos))
+						{
+						
+							isdrag=1;
+						}
 					}
 				}
 				Continue = 0;
@@ -109,11 +132,10 @@ int main(int argc, char **argv)
 			isinitialclick=false;
 		}
 
-		if(((16 & mousepos.state) == mousepos.state || (24 & mousepos.state) == mousepos.state) && isdrag)
+		if(Continue == 1)
 		{
-			if(Continue == 1)
+			if(((16 & mousepos.state) == mousepos.state || (24 & mousepos.state) == mousepos.state) && isdrag)
 			{
-			
 				/* Check to see if window is still over there. This is to prevent the window from snapping after the mouse has been moved away. */
 				if(relativeMousepos.x<=offset)
 				{

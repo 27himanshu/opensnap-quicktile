@@ -41,9 +41,9 @@ Make sure you have all prerequisits:
 
 And finally build and install it:
 
-    cd opensnap*
+    cd opensnap-quicktile*
     make
 
-And now start opensnap by
+And now start opensnap-quicktile by
 
-    bin/opensnap --daemon
+    bin/opensnap-quicktile --daemon
