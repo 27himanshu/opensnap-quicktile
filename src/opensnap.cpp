@@ -9,8 +9,13 @@
 #include "opensnap.h"
 #include <iostream>
 
+// Constants
+#define VERSION "1.3"
+
 #define LEFTCLICK 256
 
+/** Execute the given string as the argument of the quicktile binary.
+ */
 void string2exec(std::string args)
 {
 	std::string tempAction = "quicktile ";
@@ -20,7 +25,7 @@ void string2exec(std::string args)
 
 int main(int argc, char **argv)
 {
-	gtk_init(&argc, &argv);                     
+	gtk_init(&argc, &argv);
 	Display *dsp = XOpenDisplay( NULL );
 	if( !dsp ) { return 1; }
 
@@ -45,7 +50,8 @@ int main(int argc, char **argv)
 		{0, 0, 0, 0}};
 
 	int opt=0;
-		
+
+	// Handle command line options
 	while((opt = getopt_long(argc,argv,"o:dvhta",longopts,NULL)) != -1)
 	{
 		switch(opt)
@@ -57,24 +63,24 @@ int main(int argc, char **argv)
 				exit(EXIT_FAILURE);
 			}
 			break;
-			
+
 		case 'v':
-			printf("opensnap-quicktile 1.2");
+			printf("opensnap-quicktile " VERSION);
 			exit(EXIT_SUCCESS);
 			break;
-			
+
 		case 'o':
 			offset=atoi(optarg);
 			break;
-			
+
 		case 't':
 			mode = 1;
 			break;
-			
+
 		case 'a':
 			mode = 2;
-			break; 
-			
+			break;
+
 		case 'h':
 		case '?':
 			printf("Usage: opensnap-quicktile <OPTION>\n\n");
@@ -91,6 +97,7 @@ int main(int argc, char **argv)
 		}
 	}
 
+	// Main loop
 	while(1)
 	{
 		getMousePosition(dsp, &event, &mousepos);
@@ -100,7 +107,7 @@ int main(int argc, char **argv)
 
 		relativeMousepos.x=mousepos.x-scrinfo.screens[scrnn].x;
 		relativeMousepos.y=mousepos.y-scrinfo.screens[scrnn].y;
-		
+
 		/* Check if the window has been dragged to a screen edge. */
 		if((LEFTCLICK & mousepos.state)==LEFTCLICK)
 		{
@@ -117,12 +124,12 @@ int main(int argc, char **argv)
 							isdrag=1;
 						}
 					}
-					
+
 					if(mode == 0 || mode == 1)
 					{
 						if(isTitlebarHit(dsp, &mousepos))
 						{
-						
+
 							isdrag=1;
 						}
 					}
@@ -140,21 +147,21 @@ int main(int argc, char **argv)
 				if(relativeMousepos.x<=offset)
 				{
 					if(relativeMousepos.y<=offset) { string2exec("top-left"); }
-				
+
 					else if(relativeMousepos.y>=scrinfo.screens[scrnn].height-offset-1) { string2exec("bottom-left"); }
-					
+
 					else { string2exec("left"); }
 				}
-				
+
 				else if(relativeMousepos.x>=scrinfo.screens[scrnn].width-offset-1)
 				{
 					if(relativeMousepos.y<=offset) { string2exec("top-right"); }
-					
+
 					else if(relativeMousepos.y>=scrinfo.screens[scrnn].height-offset-1) { string2exec("bottom-right"); }
-					
+
 					else { string2exec("right"); }
 				}
-				
+
 				else if(relativeMousepos.y>=scrinfo.screens[scrnn].height-offset-1) { string2exec("bottom"); }
 
 				else if(relativeMousepos.y<=offset) { string2exec("top"); }
@@ -162,7 +169,7 @@ int main(int argc, char **argv)
 				Continue = 0;
 			}
 		}
-		
+
 		if((LEFTCLICK & mousepos.state) != LEFTCLICK)
 		{
 			isdrag=0;
@@ -170,12 +177,14 @@ int main(int argc, char **argv)
 		}
 		usleep(10000);
 	}
-	
+
 	XCloseDisplay(dsp);
 	free(scrinfo.screens);
 	return 0;
 }
 
+/** Get the current location of the pointer.
+*/
 void getMousePosition(Display *dsp, XEvent *event, mousestate *cords)
 {
 	XQueryPointer(dsp, RootWindow(dsp, DefaultScreen(dsp)),
@@ -188,7 +197,8 @@ void getMousePosition(Display *dsp, XEvent *event, mousestate *cords)
 	cords->state=event->xbutton.state;
 }
 
-
+/** Get information about each screen.
+*/
 void getScreens(screens *scrinfo)
 {
 	GdkScreen *screen = gdk_screen_get_default();
@@ -207,17 +217,23 @@ void getScreens(screens *scrinfo)
 	}
 }
 
+/** Get the window currently in focus.
+*/
 void getFocusedWindow(Display *dsp,Window *w)
 {
 	int revert;
 	XGetInputFocus(dsp,w,&revert);
 }
 
+/** Find the parent window of the given window.
+*/
 void findParentWindow(Display *dsp, Window *w, Window *parent)
 {
 	xdo_window_find_client(dsp,*w,parent,XDO_FIND_PARENTS);
 }
 
+/** Get the rectangle that makes up the window area.
+*/
 void getWindowRect(Display *dsp, Window *win, int *x, int *y, unsigned int *w, unsigned int *h)
 {
 	unsigned int bw,d;
@@ -227,6 +243,8 @@ void getWindowRect(Display *dsp, Window *win, int *x, int *y, unsigned int *w, u
 	XTranslateCoordinates(dsp, *win, junkroot, junkx, junky, x, y, &junkroot);
 }
 
+/** Find the extents of the window frame added by the window manager.
+ */
 void getNetFrameExtents(Display *dpy, Window *w, int *top)
 {
 	long *extents;
@@ -251,6 +269,8 @@ void getNetFrameExtents(Display *dpy, Window *w, int *top)
 	}
 }
 
+/** Is the mouse in the titlebar of the active window?
+ */
 int isTitlebarHit(Display *dsp, mousestate *mousepos)
 {
 	int titlebarHeight, x, y, junkx, junky;
