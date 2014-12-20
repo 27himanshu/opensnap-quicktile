@@ -4,16 +4,11 @@ typedef struct {
     int state;
 } mousestate;
 
-typedef struct {
-    int x;
-    int y;
-    int width;
-    int height;
-} oRectangle;
+typedef GdkRectangle oRectangle;
 
 typedef struct {
     int amount;
-    oRectangle *screens;
+    GdkRectangle *screens;
 } screens;
 
 void getMousePosition(Display *dsp, XEvent *event, mousestate *cords);

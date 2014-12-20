@@ -208,12 +208,7 @@ void getScreens(screens *scrinfo)
 
 	for(int i=0; i < nmon; i++)
 	{
-		GdkRectangle rect;
-		gdk_screen_get_monitor_geometry(screen, i, &rect);
-		scrinfo->screens[i].x=rect.x;
-		scrinfo->screens[i].y=rect.y;
-		scrinfo->screens[i].width=rect.width;
-		scrinfo->screens[i].height=rect.height;
+		gdk_screen_get_monitor_geometry(screen, i, &scrinfo->screens[i]);
 	}
 }
 
