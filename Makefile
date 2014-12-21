@@ -7,15 +7,15 @@ OUTPUT=$(BIN_DIR)/$(EXECUTABLE)
 
 # GNU C++ compiler config:
 CC=g++
-CFLAGS=-Wall
-LDFLAGS = -lX11
+CFLAGS=-Wall -std=c++11
+LDFLAGS =
 
 # Sources and objects
 CPP_SOURCES = $(wildcard $(SRC_DIR)/*.cpp)
 OBJECTS = $(patsubst $(SRC_DIR)/%.cpp, $(BUILD_DIR)/%.o, $(CPP_SOURCES))
 
 # Libraries used
-LIBS=gtk+-3.0 dbus-cxx-1.0
+LIBS=x11 gtk+-3.0 dbus-cxx-1.0 log4cpp
 
 # Use LIBS with pkg-conf to get the appropriate flags
 CFLAGS += `pkg-config --cflags $(LIBS)`
@@ -26,6 +26,10 @@ dir_guard=@mkdir -p $(@D)
 
 # Make everything
 all: $(OUTPUT)
+
+# Make everything, but set debug flags when compiling
+debug: CFLAGS += -DDEBUG=DEBUG -DLOG4CPP_FIX_ERROR_COLLISION=1 -g
+debug: all
 
 # Make objects
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp

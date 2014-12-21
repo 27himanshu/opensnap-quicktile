@@ -7,35 +7,80 @@
 #include <cstdlib>
 #include <iostream>
 #include <dbus-cxx.h>
+#include <log4cpp/Category.hh>
+#include <log4cpp/Appender.hh>
+#include <log4cpp/OstreamAppender.hh>
+#include <log4cpp/Layout.hh>
+#include <log4cpp/BasicLayout.hh>
+#include <log4cpp/Priority.hh>
 #include "xdo_functions.h"
 #include "opensnap.h"
 #include "quickTileProxy.h"
 
 // Constants
+#define NAME "opensnap-quicktile"
 #define VERSION "1.3"
 
 #define LEFTCLICK 256
 
+// Initialise logging
+log4cpp::Category& logger = log4cpp::Category::getRoot();
+
+// Global variables
 int dbus = 0;
 quickTileProxy * qt_proxy;
 
 /** Execute the given string as the argument of the quicktile binary.
  */
-void string2exec(std::string args)
+int string2exec(std::string args)
 {
-	if (dbus) {
-        qt_proxy->doCommand(args);
+	logger.info("Executing quicktile command%s: %s", dbus ? "(via DBUS)" : "", args.c_str());
+    int rtn;
+    if (dbus) {
+        rtn = qt_proxy->doCommand(args);
     } else {
         std::string tempAction = "quicktile " + args;
-        system(tempAction.c_str());
+        rtn = system(tempAction.c_str());
     }
+    logger.log(rtn == 0 ? log4cpp::Priority::DEBUG : log4cpp::Priority::WARN, "Command returned %d", rtn);
 }
 
 int main(int argc, char **argv)
 {
+    // Set up logger
+    log4cpp::Appender *console = new log4cpp::OstreamAppender("console", &std::cout);
+    console->setLayout(new log4cpp::BasicLayout());
+    logger.setAppender(console);
+
+    // Get the OSQT_LOG_LEVEL environment variable
+    const char* osqt_log_level = getenv("OSQT_LOG_LEVEL");
+    std::string str (osqt_log_level);
+    if (osqt_log_level == NULL) {
+        // If the OSQT_LOG_LEVEL environment variable isn't set then set to
+        // DEFAULT_LOG_PRIORITY
+        logger.setPriority(log4cpp::Priority::ERROR);
+    } else {
+        try {
+            logger.setPriority(log4cpp::Priority::getPriorityValue(str));
+            logger.info("Log level set by OSQT_LOG_LEVEL environment variable to %d", logger.getPriority());
+        } catch (std::invalid_argument) {
+            logger.setPriority(log4cpp::Priority::ERROR);
+            logger.error("Value of OSQT_LOG_LEVEL environment variable was not a valid value: %s\n"
+            "\tUsing default log level of 'ERROR'", osqt_log_level);
+        }
+    }
+
+    logger.info("Starting up " NAME);
+
+    // Initialise GTK and X
+    logger.debug("Initialising GTK and X");
 	gtk_init(&argc, &argv);
+    logger.debug("GTK initialised");
 	Display *dsp = XOpenDisplay( NULL );
-	if( !dsp ) { return 1; }
+	if( !dsp ) {
+        logger.fatal("Could not initialise X. Is the X Server running?");
+        return EXIT_FAILURE;
+    }
 
 	screens scrinfo;
 	getScreens(&scrinfo);
@@ -52,7 +97,8 @@ int main(int argc, char **argv)
 		{"offset",    1, NULL, 'o'},
 		{"daemon",    0, NULL, 'd'},
 		{"help",      0, NULL, 'h'},
-		{"version",   0, NULL, 'V'},
+		{"version",   0, NULL, 'v'},
+		{"debug",     0, NULL, 'D'},
 		{"titledrag", 0, NULL, 't'},
 		{"altdrag",   0, NULL, 'a'},
 		{"dbus",      0, NULL, 'b'},
@@ -61,16 +107,19 @@ int main(int argc, char **argv)
 	int opt=0;
 
 	// Handle command line options
-	while((opt = getopt_long(argc,argv,"o:dvhtab",longopts,NULL)) != -1)
+    logger.info("Parsing command line arguments");
+	while((opt = getopt_long(argc,argv,"o:dhvDtab",longopts,NULL)) != -1)
 	{
 		switch(opt)
 		{
 		case 'd':
+            logger.debug("Daemon mode requested by command line arguments");
 			if(daemon(0,0) == -1)
 			{
-				perror("daemon");
+				logger.fatal("Could not daemonise OpenSnap");
 				exit(EXIT_FAILURE);
 			}
+            logger.notice("Now running as daemon");
 			break;
 
 		case 'v':
@@ -78,20 +127,28 @@ int main(int argc, char **argv)
 			exit(EXIT_SUCCESS);
 			break;
 
+		case 'D':
+            logger.setPriority(static_cast<int>(logger.getPriority()) + 100);
+			break;
+
 		case 'o':
 			offset=atoi(optarg);
+            logger.notice("Offset has been set to %d pixels");
 			break;
 
 		case 't':
 			mode = 1;
+            logger.notice("Mode has been set to titlebar drag only");
 			break;
 
 		case 'a':
 			mode = 2;
+            logger.notice("Mode has been set to Alt+Dragging only");
 			break;
 
         case 'b':
             dbus = 1;
+            logger.notice("DBus mode has been enabled");
             break;
 
 		case 'h':
@@ -102,6 +159,7 @@ int main(int argc, char **argv)
 			printf("  -o, --offset <PIXEL>    Offset in pixel.\n");
 			printf("  -v, --version           Print opensnap-quicktile version number.\n");
 			printf("  -h, --help              Print this help.\n");
+			printf("  -D, --debug             Increase debug log level\n");
 			printf("  -t, --titledrag         Only drags by titlebar.\n");
 			printf("  -a, --altdrag           Only drags by Alt+Dragging.\n\n");
 			printf("  -b, --dbus              Use dbus to communicate with quicktile daemon.\n\n");
@@ -113,9 +171,13 @@ int main(int argc, char **argv)
 
     if (dbus)
     {
+        logger.info("DBus connection being initiated");
         DBus::init();
+        logger.debug("Creating a DBus dispatcher");
         DBus::Dispatcher::pointer dispatcher = DBus::Dispatcher::create();
+        logger.debug("Creating a connection to Session Bus");
         DBus::Connection::pointer connection = dispatcher->create_connection(DBus::BUS_SESSION);
+        logger.debug("Setting up proxy to QuickTile");
         qt_proxy = new quickTileProxy(connection);
     }
 
