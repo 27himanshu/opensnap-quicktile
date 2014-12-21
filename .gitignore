@@ -1,4 +1,8 @@
+# Generated files
 bin/*
 .directory
 src/.directory
 /sameple_configs/.directory
+
+#Netbeans project Directory
+nbproject/
