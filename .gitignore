@@ -1,8 +1,6 @@
 # Generated files
-bin/*
-.directory
-src/.directory
-/sameple_configs/.directory
+bin/
+build/
 
 #Netbeans project Directory
 nbproject/
