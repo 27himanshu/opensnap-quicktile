@@ -5,22 +5,30 @@
 #include <getopt.h>
 #include <time.h>
 #include <cstdlib>
+#include <iostream>
+#include <dbus-cxx.h>
 #include "xdo_functions.h"
 #include "opensnap.h"
-#include <iostream>
+#include "quickTileProxy.h"
 
 // Constants
 #define VERSION "1.3"
 
 #define LEFTCLICK 256
 
+int dbus = 0;
+quickTileProxy * qt_proxy;
+
 /** Execute the given string as the argument of the quicktile binary.
  */
 void string2exec(std::string args)
 {
-	std::string tempAction = "quicktile ";
-	tempAction += args;
-	system(tempAction.c_str());
+	if (dbus) {
+        qt_proxy->doCommand(args);
+    } else {
+        std::string tempAction = "quicktile " + args;
+        system(tempAction.c_str());
+    }
 }
 
 int main(int argc, char **argv)
@@ -38,7 +46,6 @@ int main(int argc, char **argv)
 	mousestate relativeMousepos;
 	XEvent event;
 	int mode = 0;
-    int dbus = 0;
 	int Continue = 0;
 
 	struct option longopts[] = {
@@ -54,7 +61,7 @@ int main(int argc, char **argv)
 	int opt=0;
 
 	// Handle command line options
-	while((opt = getopt_long(argc,argv,"o:dvhta",longopts,NULL)) != -1)
+	while((opt = getopt_long(argc,argv,"o:dvhtab",longopts,NULL)) != -1)
 	{
 		switch(opt)
 		{
@@ -103,6 +110,14 @@ int main(int argc, char **argv)
 			break;
 		}
 	}
+
+    if (dbus)
+    {
+        DBus::init();
+        DBus::Dispatcher::pointer dispatcher = DBus::Dispatcher::create();
+        DBus::Connection::pointer connection = dispatcher->create_connection(DBus::BUS_SESSION);
+        qt_proxy = new quickTileProxy(connection);
+    }
 
 	// Main loop
 	while(1)
@@ -187,6 +202,7 @@ int main(int argc, char **argv)
 
 	XCloseDisplay(dsp);
 	free(scrinfo.screens);
+    delete qt_proxy;
 	return 0;
 }
 
