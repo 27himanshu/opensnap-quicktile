@@ -38,6 +38,7 @@ int main(int argc, char **argv)
 	mousestate relativeMousepos;
 	XEvent event;
 	int mode = 0;
+    int dbus = 0;
 	int Continue = 0;
 
 	struct option longopts[] = {
@@ -47,6 +48,7 @@ int main(int argc, char **argv)
 		{"version",   0, NULL, 'V'},
 		{"titledrag", 0, NULL, 't'},
 		{"altdrag",   0, NULL, 'a'},
+		{"dbus",      0, NULL, 'b'},
 		{0, 0, 0, 0}};
 
 	int opt=0;
@@ -81,6 +83,10 @@ int main(int argc, char **argv)
 			mode = 2;
 			break;
 
+        case 'b':
+            dbus = 1;
+            break;
+
 		case 'h':
 		case '?':
 			printf("Usage: opensnap-quicktile <OPTION>\n\n");
@@ -91,6 +97,7 @@ int main(int argc, char **argv)
 			printf("  -h, --help              Print this help.\n");
 			printf("  -t, --titledrag         Only drags by titlebar.\n");
 			printf("  -a, --altdrag           Only drags by Alt+Dragging.\n\n");
+			printf("  -b, --dbus              Use dbus to communicate with quicktile daemon.\n\n");
 
 			exit(EXIT_FAILURE);
 			break;
