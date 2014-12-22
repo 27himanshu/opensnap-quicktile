@@ -43,6 +43,7 @@ int string2exec(std::string args)
         rtn = system(tempAction.c_str());
     }
     logger.log(rtn == 0 ? log4cpp::Priority::DEBUG : log4cpp::Priority::WARN, "Command returned %d", rtn);
+    return rtn;
 }
 
 int main(int argc, char **argv)
@@ -54,14 +55,13 @@ int main(int argc, char **argv)
 
     // Get the OSQT_LOG_LEVEL environment variable
     const char* osqt_log_level = getenv("OSQT_LOG_LEVEL");
-    std::string str (osqt_log_level);
     if (osqt_log_level == NULL) {
         // If the OSQT_LOG_LEVEL environment variable isn't set then set to
         // DEFAULT_LOG_PRIORITY
         logger.setPriority(log4cpp::Priority::ERROR);
     } else {
         try {
-            logger.setPriority(log4cpp::Priority::getPriorityValue(str));
+            logger.setPriority(log4cpp::Priority::getPriorityValue(osqt_log_level));
             logger.info("Log level set by OSQT_LOG_LEVEL environment variable to %d", logger.getPriority());
         } catch (std::invalid_argument) {
             logger.setPriority(log4cpp::Priority::ERROR);
@@ -182,6 +182,7 @@ int main(int argc, char **argv)
     }
 
 	// Main loop
+    logger.info("Waiting for actions");
 	while(1)
 	{
 		getMousePosition(dsp, &event, &mousepos);
