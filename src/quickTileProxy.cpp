@@ -10,7 +10,7 @@
 
 quickTileProxy::quickTileProxy(DBus::Connection::pointer connection) :
     object(connection->create_object_proxy(QT_DBUS_NAME, QT_OBJECT_PATH)),
-        doCommand(*(object->create_method<int,std::string>(QT_INTERFACE,"doCommand")))
+        doCommand(*(object->create_method<bool,std::string>(QT_INTERFACE,"doCommand")))
 {
 
 }

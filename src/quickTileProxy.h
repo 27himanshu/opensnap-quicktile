@@ -15,7 +15,7 @@
 class quickTileProxy {
     DBus::ObjectProxy::pointer object;
 public:
-    DBus::MethodProxy<int, std::string>& doCommand;
+    DBus::MethodProxy<bool, std::string>& doCommand;
     quickTileProxy(DBus::Connection::pointer connection);
 private:
 
