@@ -164,7 +164,7 @@ int main(int argc, char **argv)
 
 				else if(relativeMousepos.y>=scrinfo.screens[scrnn].height-offset-1) { string2exec("bottom"); }
 
-				else if(relativeMousepos.y<=offset) { string2exec("top"); }
+				else if(relativeMousepos.y<=offset) { string2exec("maximize"); }
 
 				Continue = 0;
 			}
